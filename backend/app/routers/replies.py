@@ -9,7 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.email import Email, EmailReply
+from app.models.email import Email, EmailReply, EmailIntegration
+from app.services.gmail_send import send_reply_via_gmail
 from app.schemas.email import ReplyCreate, ReplyOut
 
 router = APIRouter()
@@ -102,6 +103,23 @@ def send_reply(
     if not reply.is_draft:
         raise HTTPException(status_code=400, detail="Reply already sent")
 
+    # First, fetch the email and attempt to send via provider. Only mark as sent
+    # in the DB if the provider send succeeds.
+    email_obj = db.query(Email).filter(Email.id == email_id).first()
+    if not email_obj:
+        raise HTTPException(status_code=404, detail="Email not found")
+
+    sent_ok, err = send_reply_via_gmail(email_obj, reply)
+    if not sent_ok:
+        # Provide actionable message when it's a permissions/scope problem.
+        if "invalid_scope" in (err or ""):
+            raise HTTPException(
+                status_code=502,
+                detail="Send failed: integration missing `gmail.send` scope — reauthorize the Gmail integration with send permission",
+            )
+        raise HTTPException(status_code=502, detail=f"Failed to send reply: {err}")
+
+    # Provider send succeeded — mark reply as sent in DB and return
     reply.is_draft = False
     reply.sent_at = datetime.now(timezone.utc)
     db.commit()

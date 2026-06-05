@@ -45,10 +45,15 @@ def gmail_auth_url():
             "openid",
             "https://www.googleapis.com/auth/gmail.readonly",
             "https://www.googleapis.com/auth/userinfo.email",
+            "https://www.googleapis.com/auth/gmail.send",
         ],
     )
     flow.redirect_uri = settings.GMAIL_REDIRECT_URI
-    auth_url, _ = flow.authorization_url(prompt="consent", access_type="offline")
+    auth_url, _ = flow.authorization_url(
+        prompt="consent",
+        access_type="offline",
+        include_granted_scopes=False,
+    )
     return {"auth_url": auth_url}
 
 
@@ -87,11 +92,23 @@ def gmail_callback(
                 "openid",
                 "https://www.googleapis.com/auth/gmail.readonly",
                 "https://www.googleapis.com/auth/userinfo.email",
+                "https://www.googleapis.com/auth/gmail.send",
             ],
         )
         flow.redirect_uri = settings.GMAIL_REDIRECT_URI
         flow.fetch_token(code=code)
         credentials = flow.credentials
+
+        # Ensure the returned credentials include the gmail.send scope we requested.
+        returned_scopes = getattr(credentials, "scopes", None) or []
+        if "https://www.googleapis.com/auth/gmail.send" not in returned_scopes:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Gmail OAuth failed: missing gmail.send scope. "
+                    "Please re-authorize and grant the Send permission (try an incognito window)."
+                ),
+            )
 
         # Get user email
         service = build("oauth2", "v2", credentials=credentials)
