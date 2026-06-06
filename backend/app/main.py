@@ -8,6 +8,7 @@ from app.config import settings
 from app.database import engine, Base, SessionLocal
 from app.routers import emails, analysis, dashboard, integrations
 from app.routers import lookups, replies, domains
+from app.routers.auth import router as auth_router
 from app.services.notification_service import notification_manager
 from app.services.gmail_sync import start_email_poller
 
@@ -32,6 +33,7 @@ app.add_middleware(
 )
 
 # ── Routers ───────────────────────────────────────────────────
+app.include_router(auth_router,         prefix="/api/auth",         tags=["Auth"])
 app.include_router(emails.router,       prefix="/api/emails",       tags=["Emails"])
 app.include_router(analysis.router,     prefix="/api/analysis",     tags=["Analysis"])
 app.include_router(dashboard.router,    prefix="/api/dashboard",    tags=["Dashboard"])

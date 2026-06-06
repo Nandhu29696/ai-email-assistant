@@ -13,7 +13,7 @@ import type { Sentiment, Priority, Category } from "@/types";
 export default function EmailList() {
   const { filters, setFilters, resetFilters } = useEmailStore();
   const [search, setSearch] = useState(filters.search ?? "");
-  const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
+  const [selectedEmailId, setSelectedEmailId] = useState<number | null>(null);
   const { data, isLoading, isError } = useEmails();
 
   const { data: sentiments = [] } = useSentiments();

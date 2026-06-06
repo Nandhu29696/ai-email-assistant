@@ -15,7 +15,7 @@ import LoadingSpinner from "@/components/UI/LoadingSpinner";
 import { formatDate, timeAgo } from "@/lib/utils";
 
 interface EmailPreviewModalProps {
-  emailId: string;
+  emailId: string | number;
   onClose: () => void;
 }
 

@@ -70,7 +70,7 @@ export function useNotifications() {
   }, [addNotification, qc]);
 
   const markRead = useMutation({
-    mutationFn: (id: string) =>
+    mutationFn: (id: number) =>
       api.patch(`/api/analysis/notifications/${id}/read`),
     onSuccess: (_data, id) => markNotificationRead(id),
   });

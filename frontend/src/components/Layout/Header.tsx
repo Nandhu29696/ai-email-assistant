@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEmailStore } from "@/store/emailStore";
+import { useAuthStore } from "@/store/authStore";
 import { useNotifications } from "@/hooks/useNotifications";
 import NotificationPanel from "./NotificationPanel";
 
@@ -14,9 +16,16 @@ interface HeaderProps {
 export default function Header({ searchValue = "", onSearch }: HeaderProps) {
   const unreadCount = useEmailStore((s) => s.unreadCount);
   const [panelOpen, setPanelOpen] = useState(false);
+  const { user, logout } = useAuthStore();
+  const router = useRouter();
 
   // Bootstrap notifications fetch + WebSocket on app load
   useNotifications();
+
+  function handleLogout() {
+    logout();
+    router.push("/login");
+  }
 
   return (
     <header className="h-14 flex items-center gap-4 px-6 bg-white border-b border-slate-200 relative">
@@ -33,6 +42,16 @@ export default function Header({ searchValue = "", onSearch }: HeaderProps) {
       </div>
 
       <div className="ml-auto flex items-center gap-3">
+        {/* Current user badge */}
+        {user && (
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-slate-500">{user.full_name ?? user.username}</span>
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 capitalize">
+              {user.role}
+            </span>
+          </div>
+        )}
+
         {/* Notification bell */}
         <button
           onClick={() => setPanelOpen((o) => !o)}
@@ -45,6 +64,16 @@ export default function Header({ searchValue = "", onSearch }: HeaderProps) {
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
+        </button>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="p-2 rounded-full hover:bg-slate-100 transition-colors"
+          aria-label="Logout"
+          title="Sign out"
+        >
+          <LogOut size={20} className="text-slate-600" />
         </button>
       </div>
 

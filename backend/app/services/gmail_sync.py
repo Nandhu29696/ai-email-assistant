@@ -12,6 +12,7 @@ import email.utils
 from datetime import datetime
 
 from loguru import logger
+from sqlalchemy.exc import IntegrityError
 
 from app.config import settings
 from app.database import SessionLocal
@@ -48,7 +49,7 @@ def _extract_gmail_body(payload: dict) -> tuple[str, str]:
 
 # ── Per-integration sync ──────────────────────────────────────
 
-async def sync_gmail_integration(integration_id: str) -> int:
+async def sync_gmail_integration(integration_id: int) -> int:
     """
     Fetch unread emails for one Gmail integration.
     Saves new ones to the DB and queues AI analysis.
@@ -218,6 +219,10 @@ async def sync_gmail_integration(integration_id: str) -> int:
             logger.info(
                 f"[gmail_sync] New email saved: '{subject[:60]}' from {sender_email_addr}"
             )
+        except IntegrityError:
+            # Another concurrent sync inserted the same message first.
+            db4.rollback()
+            continue
         except Exception as exc:
             logger.error(f"[gmail_sync] Failed to insert email {msg_id}: {exc}")
             db4.rollback()
@@ -290,7 +295,7 @@ async def sync_all_gmail():
     db = SessionLocal()
     try:
         integration_ids = [
-            str(row.id)
+            row.id
             for row in db.query(EmailIntegration).filter(
                 EmailIntegration.is_active == True,
                 EmailIntegration.provider == "gmail",
@@ -318,7 +323,10 @@ async def start_email_poller():
         f"[gmail_sync] Email poller started — interval={settings.FETCH_INTERVAL_SECONDS}s"
     )
     # Initial sync immediately on startup
-    await sync_all_gmail()
+    try:
+        await sync_all_gmail()
+    except Exception as exc:
+        logger.error(f"[gmail_sync] Initial sync error: {exc}")
     while True:
         await asyncio.sleep(settings.FETCH_INTERVAL_SECONDS)
         try:

@@ -49,7 +49,7 @@ def gmail_auth_url():
         ],
     )
     flow.redirect_uri = settings.GMAIL_REDIRECT_URI
-    auth_url, _ = flow.authorization_url(
+    auth_url, _ = flow.authorization_url(  
         prompt="consent",
         access_type="offline",
         include_granted_scopes=False,
@@ -216,7 +216,7 @@ def outlook_callback(
 
 @router.delete("/{integration_id}")
 def disconnect_integration(
-    integration_id: str,
+    integration_id: int,
     db: Session = Depends(get_db),
 ):
     integration = db.query(EmailIntegration).filter(

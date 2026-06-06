@@ -1,7 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
 from typing import Any, List, Optional
-from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -51,8 +50,8 @@ class ReplyCreate(BaseModel):
 
 
 class ReplyOut(BaseModel):
-    id: UUID
-    email_id: UUID
+    id: int
+    email_id: int
     subject: Optional[str] = None
     body: str
     attachments_json: List[Any] = []
@@ -71,7 +70,7 @@ class EmotionItem(BaseModel):
 
 
 class AnalysisOut(BaseModel):
-    id: UUID
+    id: int
     sentiment: Optional[str] = None
     sentiment_score: Optional[float] = None
     primary_emotion: Optional[str] = None
@@ -105,11 +104,11 @@ class EmailCreate(EmailBase):
     message_id: str
     body_html: Optional[str] = None
     thread_id: Optional[str] = None
-    integration_id: Optional[UUID] = None
+    integration_id: Optional[int] = None
 
 
 class EmailOut(EmailBase):
-    id: UUID
+    id: int
     message_id: str
     body_clean: Optional[str] = None
     is_read: bool
@@ -136,7 +135,7 @@ class EmailUpdateRequest(BaseModel):
 
 # ── Integration schemas ───────────────────────────────────────
 class IntegrationOut(BaseModel):
-    id: UUID
+    id: int
     provider: str
     email_address: str
     is_active: bool
@@ -148,8 +147,8 @@ class IntegrationOut(BaseModel):
 
 # ── Notification schemas ──────────────────────────────────────
 class NotificationOut(BaseModel):
-    id: UUID
-    email_id: Optional[UUID] = None
+    id: int
+    email_id: Optional[int] = None
     type: str
     title: str
     message: Optional[str] = None

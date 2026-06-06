@@ -1,10 +1,8 @@
-import uuid
 from datetime import datetime
 from sqlalchemy import (
     Column, String, Text, Boolean, DateTime, ForeignKey,
-    Numeric, SmallInteger, Integer
+    Numeric, SmallInteger, Integer, JSON
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
@@ -46,7 +44,7 @@ class CategoryOption(Base):
 class EmailIntegration(Base):
     __tablename__ = "email_integrations"
 
-    id            = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id            = Column(Integer, primary_key=True, autoincrement=True)
     provider      = Column(String(20), nullable=False)      # gmail | outlook
     email_address = Column(String(255), nullable=False, unique=True)
     access_token  = Column(Text)
@@ -62,9 +60,9 @@ class EmailIntegration(Base):
 class Email(Base):
     __tablename__ = "emails"
 
-    id              = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id              = Column(Integer, primary_key=True, autoincrement=True)
     message_id      = Column(String(512), unique=True, nullable=False)
-    integration_id  = Column(UUID(as_uuid=True), ForeignKey("email_integrations.id"), nullable=True)
+    integration_id  = Column(Integer, ForeignKey("email_integrations.id"), nullable=True)
     subject         = Column(Text, nullable=False, default="(no subject)")
     sender_name     = Column(String(255))
     sender_email    = Column(String(255), nullable=False)
@@ -88,8 +86,8 @@ class Email(Base):
 class EmailAnalysis(Base):
     __tablename__ = "email_analyses"
 
-    id                  = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email_id            = Column(UUID(as_uuid=True), ForeignKey("emails.id", ondelete="CASCADE"), nullable=False, unique=True)
+    id                  = Column(Integer, primary_key=True, autoincrement=True)
+    email_id            = Column(Integer, ForeignKey("emails.id", ondelete="CASCADE"), nullable=False, unique=True)
 
     # Sentiment
     sentiment           = Column(String(20))        # positive | neutral | negative
@@ -97,7 +95,7 @@ class EmailAnalysis(Base):
 
     # Emotions
     primary_emotion     = Column(String(50))
-    emotions_json       = Column(JSONB, default=list)
+    emotions_json       = Column(JSON, default=list)
 
     # Category
     category            = Column(String(50))        # complaint | support | sales …
@@ -126,8 +124,8 @@ class EmailAnalysis(Base):
 class Notification(Base):
     __tablename__ = "notifications"
 
-    id         = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email_id   = Column(UUID(as_uuid=True), ForeignKey("emails.id", ondelete="CASCADE"))
+    id         = Column(Integer, primary_key=True, autoincrement=True)
+    email_id   = Column(Integer, ForeignKey("emails.id", ondelete="CASCADE"))
     type       = Column(String(50), nullable=False)   # urgent | negative_sentiment | new_email
     title      = Column(String(255), nullable=False)
     message    = Column(Text)
@@ -140,11 +138,11 @@ class Notification(Base):
 class EmailReply(Base):
     __tablename__ = "email_replies"
 
-    id               = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email_id         = Column(UUID(as_uuid=True), ForeignKey("emails.id", ondelete="CASCADE"), nullable=False)
+    id               = Column(Integer, primary_key=True, autoincrement=True)
+    email_id         = Column(Integer, ForeignKey("emails.id", ondelete="CASCADE"), nullable=False)
     subject          = Column(Text)
     body             = Column(Text, nullable=False)
-    attachments_json = Column(JSONB, default=list)   # [{"filename": "...", "size": 0}]
+    attachments_json = Column(JSON, default=list)   # [{"filename": "...", "size": 0}]
     is_draft         = Column(Boolean, default=True)
     sent_at          = Column(DateTime(timezone=True))
     created_at       = Column(DateTime(timezone=True), server_default=func.now())

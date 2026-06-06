@@ -3,6 +3,8 @@ import api from "@/lib/api";
 import { useEmailStore } from "@/store/emailStore";
 import type { Email, EmailListOut, EmailUpdateRequest } from "@/types";
 
+type EntityId = string | number;
+
 export function useEmails() {
   const filters = useEmailStore((s) => s.filters);
 
@@ -18,7 +20,7 @@ export function useEmails() {
   });
 }
 
-export function useEmail(id: string) {
+export function useEmail(id: EntityId) {
   return useQuery<Email>({
     queryKey: ["email", id],
     queryFn: async () => {
@@ -32,7 +34,7 @@ export function useEmail(id: string) {
 export function useAnalyzeEmail() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.post(`/api/emails/${id}/analyze`),
+    mutationFn: (id: EntityId) => api.post(`/api/emails/${id}/analyze`),
     onSuccess: (_data, id) => {
       qc.invalidateQueries({ queryKey: ["email", id] });
       qc.invalidateQueries({ queryKey: ["emails"] });
@@ -43,7 +45,7 @@ export function useAnalyzeEmail() {
 export function useUpdateEmail() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, body }: { id: string; body: EmailUpdateRequest }) =>
+    mutationFn: ({ id, body }: { id: EntityId; body: EmailUpdateRequest }) =>
       api.patch(`/api/emails/${id}`, body),
     onSuccess: (_data, { id }) => {
       qc.invalidateQueries({ queryKey: ["email", id] });

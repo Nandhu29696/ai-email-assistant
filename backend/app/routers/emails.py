@@ -4,7 +4,6 @@ Emails router — CRUD operations and analysis trigger.
 from __future__ import annotations
 import time
 from datetime import datetime, timezone
-from uuid import UUID
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.orm import Session
@@ -24,7 +23,7 @@ router = APIRouter()
 
 
 # ── Full AI analysis pipeline ─────────────────────────────────
-async def _run_analysis_pipeline(email_id: UUID, db: Session | None = None):
+async def _run_analysis_pipeline(email_id: int, db: Session | None = None):
     """Run complete AI pipeline for a given email.
 
     Accepts an existing *db* session for backward compatibility (router usage),
@@ -125,8 +124,8 @@ async def _run_analysis_pipeline(email_id: UUID, db: Session | None = None):
                 write_db.commit()
                 write_db.refresh(new_notif)
                 await notification_manager.broadcast_notification({
-                    "id": str(new_notif.id),
-                    "email_id": str(new_notif.email_id),
+                    "id": new_notif.id,
+                    "email_id": new_notif.email_id,
                     "type": new_notif.type,
                     "title": new_notif.title,
                     "message": new_notif.message or "",
@@ -151,8 +150,8 @@ async def _run_analysis_pipeline(email_id: UUID, db: Session | None = None):
                 write_db.commit()
                 write_db.refresh(alert)
                 await notification_manager.broadcast_notification({
-                    "id": str(alert.id),
-                    "email_id": str(alert.email_id),
+                    "id": alert.id,
+                    "email_id": alert.email_id,
                     "type": alert.type,
                     "title": alert.title,
                     "message": alert.message or "",
@@ -213,7 +212,7 @@ def list_emails(
 
 
 @router.get("/{email_id}", response_model=EmailOut)
-def get_email(email_id: UUID, db: Session = Depends(get_db)):
+def get_email(email_id: int, db: Session = Depends(get_db)):
     email_obj = db.query(Email).filter(Email.id == email_id).first()
     if not email_obj:
         raise HTTPException(status_code=404, detail="Email not found")
@@ -222,7 +221,7 @@ def get_email(email_id: UUID, db: Session = Depends(get_db)):
 
 @router.post("/{email_id}/analyze")
 async def analyze_email(
-    email_id: UUID,
+    email_id: int,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
@@ -234,12 +233,12 @@ async def analyze_email(
     # Pipeline manages its own DB sessions to avoid holding a connection
     # across long-running async AI calls.
     background_tasks.add_task(_run_analysis_pipeline, email_id)
-    return {"message": "Analysis started", "email_id": str(email_id)}
+    return {"message": "Analysis started", "email_id": email_id}
 
 
 @router.patch("/{email_id}", response_model=EmailOut)
 def update_email(
-    email_id: UUID,
+    email_id: int,
     payload: EmailUpdateRequest,
     db: Session = Depends(get_db),
 ):

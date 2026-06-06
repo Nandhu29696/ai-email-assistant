@@ -36,7 +36,7 @@ export default function IntegrationsPage() {
   });
 
   const disconnect = useMutation({
-    mutationFn: (id: string) => api.delete(`/api/integrations/${id}`),
+    mutationFn: (id: number) => api.delete(`/api/integrations/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["integrations"] }),
   });
 

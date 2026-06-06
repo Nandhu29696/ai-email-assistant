@@ -1,5 +1,7 @@
 from pydantic_settings import BaseSettings
+from pydantic import model_validator
 from typing import Optional
+from urllib.parse import quote_plus
 
 
 class Settings(BaseSettings):
@@ -14,8 +16,33 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3001",
     ]
 
-    # ── Database ──────────────────────────────────────────────
-    DATABASE_URL: str = "postgresql://postgres:1234@localhost:5432/job_agent"
+    # ── Database – individual fields (read from .env) ─────────
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+    DB_NAME: str = "ai_email_db"
+    DB_USER: str = "postgres"
+    DB_PASSWORD: str = "1234"
+    DB_TYPE: str = "postgresql"   # postgresql | mysql
+
+    # Computed at startup – do not set manually; use DB_* fields instead
+    DATABASE_URL: str = ""
+
+    @model_validator(mode="after")
+    def build_database_url(self) -> "Settings":
+        """Build DATABASE_URL from individual DB_* env vars if not already set."""
+        if not self.DATABASE_URL:
+            pwd = quote_plus(self.DB_PASSWORD)
+            if self.DB_TYPE.lower() == "mysql":
+                self.DATABASE_URL = (
+                    f"mysql+pymysql://{self.DB_USER}:{pwd}"
+                    f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}?charset=utf8mb4"
+                )
+            else:
+                self.DATABASE_URL = (
+                    f"postgresql+psycopg2://{self.DB_USER}:{pwd}"
+                    f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+                )
+        return self
 
     # ── Security ──────────────────────────────────────────────
     SECRET_KEY: str = "change-me-to-a-secure-random-secret"

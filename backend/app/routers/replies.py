@@ -3,7 +3,6 @@ Replies router — create, list, and send email replies.
 """
 from __future__ import annotations
 from datetime import datetime, timezone
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -17,7 +16,7 @@ router = APIRouter()
 
 
 @router.get("/{email_id}/replies", response_model=list[ReplyOut])
-def list_replies(email_id: UUID, db: Session = Depends(get_db)):
+def list_replies(email_id: int, db: Session = Depends(get_db)):
     """Return all drafts and sent replies for an email, newest first."""
     email_obj = db.query(Email).filter(Email.id == email_id).first()
     if not email_obj:
@@ -32,7 +31,7 @@ def list_replies(email_id: UUID, db: Session = Depends(get_db)):
 
 @router.post("/{email_id}/replies", response_model=ReplyOut, status_code=201)
 def create_reply(
-    email_id: UUID,
+    email_id: int,
     payload: ReplyCreate,
     db: Session = Depends(get_db),
 ):
@@ -57,8 +56,8 @@ def create_reply(
 
 @router.patch("/{email_id}/replies/{reply_id}", response_model=ReplyOut)
 def update_reply(
-    email_id: UUID,
-    reply_id: UUID,
+    email_id: int,
+    reply_id: int,
     payload: ReplyCreate,
     db: Session = Depends(get_db),
 ):
@@ -88,8 +87,8 @@ def update_reply(
 
 @router.post("/{email_id}/replies/{reply_id}/send", response_model=ReplyOut)
 def send_reply(
-    email_id: UUID,
-    reply_id: UUID,
+    email_id: int,
+    reply_id: int,
     db: Session = Depends(get_db),
 ):
     """Mark a draft reply as sent."""

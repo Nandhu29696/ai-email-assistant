@@ -5,7 +5,7 @@ import { ChevronDown, ChevronUp, Paperclip, Sparkles, X } from "lucide-react";
 import { useCreateReply } from "@/hooks/useReplies";
 
 interface ReplyComposerProps {
-  emailId: string;
+  emailId: string | number;
   emailSubject: string;
   suggestedReply?: string;
 }

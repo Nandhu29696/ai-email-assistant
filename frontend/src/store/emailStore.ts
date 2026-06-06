@@ -6,7 +6,7 @@ interface EmailStore {
   notifications: Notification[];
   unreadCount: number;
   addNotification: (n: Notification) => void;
-  markNotificationRead: (id: string) => void;
+  markNotificationRead: (id: number) => void;
   setNotifications: (notifications: Notification[]) => void;
 
   // Filter state

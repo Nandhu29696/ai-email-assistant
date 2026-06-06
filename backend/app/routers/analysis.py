@@ -1,7 +1,6 @@
 """
 Analysis router — manual re-analysis and notification management.
 """
-from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -27,7 +26,7 @@ def list_notifications(
 
 @router.patch("/notifications/{notification_id}/read")
 def mark_notification_read(
-    notification_id: UUID,
+    notification_id: int,
     db: Session = Depends(get_db),
 ):
     notif = db.query(Notification).filter(Notification.id == notification_id).first()

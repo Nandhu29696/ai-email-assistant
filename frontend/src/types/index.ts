@@ -26,8 +26,8 @@ export interface EmotionItem {
 }
 
 export interface EmailAnalysis {
-  id: string;
-  email_id: string;
+  id: number;
+  email_id: number;
   sentiment: Sentiment;
   sentiment_score: number;
   primary_emotion: Emotion;
@@ -46,7 +46,7 @@ export interface EmailAnalysis {
 }
 
 export interface Email {
-  id: string;
+  id: number;
   message_id: string;
   subject: string;
   sender_name: string;
@@ -76,7 +76,7 @@ export interface EmailUpdateRequest {
 }
 
 export interface Integration {
-  id: string;
+  id: number;
   provider: Provider;
   email_address: string;
   is_active: boolean;
@@ -84,8 +84,8 @@ export interface Integration {
 }
 
 export interface Notification {
-  id: string;
-  email_id: string;
+  id: number;
+  email_id: number;
   type: string;
   title: string;
   message: string;
@@ -133,8 +133,8 @@ export interface AllowedDomain {
 }
 
 export interface EmailReply {
-  id: string;
-  email_id: string;
+  id: number;
+  email_id: number;
   subject: string | null;
   body: string;
   attachments_json: Array<{ filename: string; size?: number }>;
